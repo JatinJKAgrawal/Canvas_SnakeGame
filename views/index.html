@@ -11,24 +11,83 @@
 </head>
 <body onload="startGame()">
   <script>
-
+  var myGamePiece;
+  // var moveRight = true;
   function startGame() {
     myGameArea.start();
+    redGamePiece = new component(10, "red", 25, 150, true);
+    blueGamePiece = new component(10, "blue", 25, 75, true);
+    greenGamePiece = new component(10, "green", 25, 225, true);
   }
 
   var myGameArea = {
-    canvas : document.createElement("canvas"),
-    start : function() {
+    canvas: document.createElement("canvas"),
+    start:  function() {
       this.canvas.width = 500;
       this.canvas.height = 300;
       this.context = this.canvas.getContext("2d");
       document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+      this.interval = setInterval(updateGameArea, 20);
+    },
+    clear: function() {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
+  }
+
+  function component(rad, color, x, y, moveRight) {
+    this.rad = rad;
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.moveRight = moveRight;
+    this.update = function() {
+      var ctx = myGameArea.context;
+      if(this.x > myGameArea.canvas.width || this.x < 0){
+        this.moveRight = !this.moveRight;
+      }
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.rad, 0, 2*Math.PI);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+    }
+  }
+
+  function updateGameArea() {
+    // console.log('this is being run');//Debug...Positive :/
+    myGameArea.clear();
+    move(blueGamePiece);
+    move(redGamePiece);
+    move(greenGamePiece);
+  }
+
+  function move(myGamePiece) {
+    if(myGamePiece.color === "red") {
+      if(myGamePiece.moveRight){
+        myGamePiece.x += 5;
+      } else {
+        myGamePiece.x -= 5;
+      }
+    } else if(myGamePiece.color === "blue"){
+      if(myGamePiece.moveRight){
+        myGamePiece.x += 10;
+      } else {
+        myGamePiece.x -= 10;
+      }
+    } else {
+      if(myGamePiece.moveRight){
+        console.log('from mtr side ',myGamePiece.moveRight);//debugging....
+        myGamePiece.x += 8;
+      } else {
+        console.log('from mtl side: ',myGamePiece.moveRight);//debugging....
+        myGamePiece.x -= 8;
+      }
+    }
+    myGamePiece.update();
   }
 
 </script>
 
-<p>We have created a game area! (or at least an empty canvas)</p>
+<p>We have created a game area!</p>
 
 </body>
 </html>
