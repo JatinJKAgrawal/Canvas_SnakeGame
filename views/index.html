@@ -15,9 +15,9 @@
   // var moveRight = true;
   function startGame() {
     myGameArea.start();
-    redGamePiece = new component(10, "red", 25, 150, true);
-    blueGamePiece = new component(10, "blue", 25, 75, true);
-    greenGamePiece = new component(10, "green", 25, 225, true);
+    redGamePiece = new ball(10, "red", 25, 150, true, 5, true, 7);
+    blueGamePiece = new ball(10, "blue", 25, 75, true, 7, true, 6);
+    greenGamePiece = new ball(10, "green", 25, 225, true, 6, true, 8);
   }
 
   var myGameArea = {
@@ -34,16 +34,22 @@
     }
   }
 
-  function component(rad, color, x, y, moveRight) {
+  function ball(rad, color, x, y, moveRight, speedX, moveLeft, speedY) {
     this.rad = rad;
     this.x = x;
     this.y = y;
+    this.speedX = speedX;
+    this.speedY = speedY;
     this.color = color;
     this.moveRight = moveRight;
+    this.moveLeft = moveLeft;
     this.update = function() {
       var ctx = myGameArea.context;
       if(this.x > myGameArea.canvas.width || this.x < 0){
         this.moveRight = !this.moveRight;
+      }
+      if(this.y > myGameArea.canvas.height || this.y < 0){
+        this.moveLeft = !this.moveLeft;
       }
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.rad, 0, 2*Math.PI);
@@ -61,26 +67,15 @@
   }
 
   function move(myGamePiece) {
-    if(myGamePiece.color === "red") {
-      if(myGamePiece.moveRight){
-        myGamePiece.x += 5;
-      } else {
-        myGamePiece.x -= 5;
-      }
-    } else if(myGamePiece.color === "blue"){
-      if(myGamePiece.moveRight){
-        myGamePiece.x += 10;
-      } else {
-        myGamePiece.x -= 10;
-      }
+    if(myGamePiece.moveRight){
+      myGamePiece.x += myGamePiece.speedX;
     } else {
-      if(myGamePiece.moveRight){
-        console.log('from mtr side ',myGamePiece.moveRight);//debugging....
-        myGamePiece.x += 8;
-      } else {
-        console.log('from mtl side: ',myGamePiece.moveRight);//debugging....
-        myGamePiece.x -= 8;
-      }
+      myGamePiece.x -= myGamePiece.speedX;
+    }
+    if(myGamePiece.moveLeft){
+      myGamePiece.y += myGamePiece.speedY;
+    } else {
+      myGamePiece.y -= myGamePiece.speedY;
     }
     myGamePiece.update();
   }
