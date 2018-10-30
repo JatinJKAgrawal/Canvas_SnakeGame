@@ -10,75 +10,124 @@
 </style>
 </head>
 <body onload="startGame()">
-  <script>
-  var myGamePiece;
-  // var moveRight = true;
-  function startGame() {
-    myGameArea.start();
-    redGamePiece = new ball(10, "red", 25, 150, true, 5, true, 7);
-    blueGamePiece = new ball(10, "blue", 25, 75, true, 7, true, 6);
-    greenGamePiece = new ball(10, "green", 25, 225, true, 6, true, 8);
+  <!-- <div id = "controllerKeys">                     //->mouse/touch controlls
+  <button onmousedown="movePltfrmUp()">UP</button>
+  <button onmousedown="movePltfrmDown()">Down</button>
+</div> -->
+<script>
+
+
+function startGame() {
+  myGameArea.start();
+
+  //Game Components
+  redBall = new Ball(10, "red", 25, 150, 5, 7);
+  blueBall = new Ball(10, "blue", 25, 75, 7, 6);
+  greenBall = new Ball(10, "green", 25, 225, 6, 8);
+  playerPltfrm = new playerPltfrm(15, 100);
+  //compPltfrm = new compPltfrm(4, 12);   //-> to be defined later!
+}
+
+var myGameArea = {
+  canvas: document.createElement("canvas"),
+
+  start:  function() {
+
+    //Properties of Canvas
+    this.canvas.width = 500;
+    this.canvas.height = 300;
+    this.context = this.canvas.getContext("2d");
+    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+    this.interval = setInterval(updateGameArea, 20);
+
+    //Events of Canvas
+    window.addEventListener('keydown', function (e) {
+      myGameArea.key = e.keyCode;
+    });
+    window.addEventListener('keyup', function (e) {
+      myGameArea.key = false;
+    });
+  },
+
+  clear: function() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+}
+
+function Ball(rad, color, x, y, speedX, speedY) {
+
+  //Properties : Ball
+  this.rad = rad;
+  this.x = x;
+  this.y = y;
+  this.speedX = speedX;
+  this.speedY = speedY;
+  this.color = color;
+
+  //Methods : Ball
+  this.draw = function() {
+    var ctx = myGameArea.context;
+    if(this.x > myGameArea.canvas.width || this.x < 0){
+      this.speedX = -this.speedX;
+    }
+    if(this.y > myGameArea.canvas.height || this.y < 0){
+      this.speedY = -this.speedY;
+    }
+    ctx.beginPath();
+    ctx.arc(this.x + this.speedX, this.y + this.speedY, this.rad, 0, 2*Math.PI);
+    ctx.fillStyle = this.color;
+    ctx.fill();
   }
 
-  var myGameArea = {
-    canvas: document.createElement("canvas"),
-    start:  function() {
-      this.canvas.width = 500;
-      this.canvas.height = 300;
-      this.context = this.canvas.getContext("2d");
-      document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-      this.interval = setInterval(updateGameArea, 20);
-    },
-    clear: function() {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
+  this.newPos = function () {
+    this.x += this.speedX;
+    this.y += this.speedY;
   }
 
-  function ball(rad, color, x, y, moveRight, speedX, moveLeft, speedY) {
-    this.rad = rad;
-    this.x = x;
-    this.y = y;
-    this.speedX = speedX;
-    this.speedY = speedY;
-    this.color = color;
-    this.moveRight = moveRight;
-    this.moveLeft = moveLeft;
-    this.update = function() {
-      var ctx = myGameArea.context;
-      if(this.x > myGameArea.canvas.width || this.x < 0){
-        this.moveRight = !this.moveRight;
-      }
-      if(this.y > myGameArea.canvas.height || this.y < 0){
-        this.moveLeft = !this.moveLeft;
-      }
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.rad, 0, 2*Math.PI);
-      ctx.fillStyle = this.color;
-      ctx.fill();
-    }
+}; //Game Component :: Ball
+
+
+function playerPltfrm(width, height){
+
+  //Properties : PlatForm
+  this.width = width;
+  this.height = height;
+  this.x = myGameArea.canvas.width - this.width;
+  this.y = 0.5*(myGameArea.canvas.height - this.height);
+
+  //Methods : PlatForm
+  this.draw = function() {
+    var ctx = myGameArea.context;
+    ctx.fillStyle = "brown";
+    ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
-  function updateGameArea() {
-    // console.log('this is being run');//Debug...Positive :/
-    myGameArea.clear();
-    move(blueGamePiece);
-    move(redGamePiece);
-    move(greenGamePiece);
+  this.newPos = function() {
+    if((myGameArea.key && myGameArea.key ==  38) && (!(this.y < 0))) {
+      this.y += -5;
+    }
+    if((myGameArea.key && myGameArea.key == 40) && (!(this.y > myGameArea.canvas.height - this.height))) {
+      this.y += 5;
+    }
   }
+}; //Game component :: Player PlatForm
 
-  function move(myGamePiece) {
-    if(myGamePiece.moveRight){
-      myGamePiece.x += myGamePiece.speedX;
-    } else {
-      myGamePiece.x -= myGamePiece.speedX;
-    }
-    if(myGamePiece.moveLeft){
-      myGamePiece.y += myGamePiece.speedY;
-    } else {
-      myGamePiece.y -= myGamePiece.speedY;
-    }
-    myGamePiece.update();
-  }
+
+
+
+function updateGameArea() {
+
+  myGameArea.clear();
+  blueBall.newPos();  //replacement for function below for test
+  blueBall.draw();
+  redBall.newPos();
+  redBall.draw();
+  greenBall.newPos();
+  greenBall.draw();
+  playerPltfrm.newPos();
+  playerPltfrm.draw();
+}
+
 
 </script>
 
