@@ -16,26 +16,42 @@
 </div> -->
 <script>
 
+var ball;
+var playerPltfrm = null;
+
+
+// document.inner
+
+// window.addEventListener('keydown',)
 
 function startGame() {
-  myGameArea.start();
+  document.getElementById('GameText').innerHTML = 'Use UP and DOWN keys to control the bar.';
+  document.getElementById('restartButton').hidden = true;
+  myGameArea.start(1000, 600); //Arguments : Canvas Dimensions
+  ball = new Ball(10, "red", 25, 150, 7, 9);//(radius, color, x, y, speedX, speedY)
+  playerPltfrm = new PlayerPltfrm(15, 100);
+}
 
-  //Game Components
-  redBall = new Ball(10, "red", 25, 150, 5, 7);
-  blueBall = new Ball(10, "blue", 25, 75, 7, 6);
-  greenBall = new Ball(10, "green", 25, 225, 6, 8);
-  playerPltfrm = new playerPltfrm(15, 100);
-  //compPltfrm = new compPltfrm(4, 12);   //-> to be defined later!
+function stopGame() {
+  ball.speedX = 0;
+  ball.speedY = 0;
+  clearInterval(myGameArea.interval);
+  ctx = myGameArea.context;
+  ctx.fillStyle = "red";
+  ctx.textAlign = "center";
+  ctx.fillText("Game Over", myGameArea.canvas.width/2, myGameArea.canvas.height/2);
+  document.getElementById('GameText').innerHTML = 'Game Over!'
+  document.getElementById('restartButton').hidden = false;
 }
 
 var myGameArea = {
   canvas: document.createElement("canvas"),
 
-  start:  function() {
+  start:  function(canvasWidth, canvasHeight) {
 
     //Properties of Canvas
-    this.canvas.width = 500;
-    this.canvas.height = 300;
+    this.canvas.width = canvasWidth;
+    this.canvas.height = canvasHeight;
     this.context = this.canvas.getContext("2d");
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
     this.interval = setInterval(updateGameArea, 20);
@@ -54,6 +70,10 @@ var myGameArea = {
   }
 }
 
+
+
+
+
 function Ball(rad, color, x, y, speedX, speedY) {
 
   //Properties : Ball
@@ -67,14 +87,14 @@ function Ball(rad, color, x, y, speedX, speedY) {
   //Methods : Ball
   this.draw = function() {
     var ctx = myGameArea.context;
-    if(this.x > myGameArea.canvas.width || this.x < 0){
+    if(this.x < 0){ // Add = " this.x > myGameArea.canvas.width || "  //Things I Do for Debugging.
       this.speedX = -this.speedX;
     }
     if(this.y > myGameArea.canvas.height || this.y < 0){
       this.speedY = -this.speedY;
     }
     ctx.beginPath();
-    ctx.arc(this.x + this.speedX, this.y + this.speedY, this.rad, 0, 2*Math.PI);
+    ctx.arc(this.x, this.y, this.rad, 0, 2*Math.PI);
     ctx.fillStyle = this.color;
     ctx.fill();
   }
@@ -84,15 +104,42 @@ function Ball(rad, color, x, y, speedX, speedY) {
     this.y += this.speedY;
   }
 
+  this.hit = function() {
+
+        //Ball WhereAbouts----
+        var myleft = this.x - this.rad;
+        var myright = this.x + this.rad;
+        var mytop = this.y - this.rad;
+        var mybottom = this.y + this.rad;
+
+        var crash = true;
+
+        var obstacle = {}; //Our obstacle(playerPltfrm) and its WhereAbouts--
+        obstacle.left = playerPltfrm.x;
+        obstacle.right = playerPltfrm.x + playerPltfrm.width;
+        obstacle.top = playerPltfrm.y;
+        obstacle.bottom = playerPltfrm.y + playerPltfrm.height;
+
+        if ((mybottom < obstacle.top) ||
+               (mytop > obstacle.bottom) ||
+               (myright < obstacle.left) ||
+               (myleft > obstacle.right)) {
+           crash = false;
+        }
+        return crash;
+    }
+
 }; //Game Component :: Ball
 
 
-function playerPltfrm(width, height){
+function PlayerPltfrm(width, height){
 
   //Properties : PlatForm
   this.width = width;
   this.height = height;
+
   this.x = myGameArea.canvas.width - this.width;
+
   this.y = 0.5*(myGameArea.canvas.height - this.height);
 
   //Methods : PlatForm
@@ -102,36 +149,49 @@ function playerPltfrm(width, height){
     ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
-  this.newPos = function() {
-    if((myGameArea.key && myGameArea.key ==  38) && (!(this.y < 0))) {
-      this.y += -5;
-    }
-    if((myGameArea.key && myGameArea.key == 40) && (!(this.y > myGameArea.canvas.height - this.height))) {
-      this.y += 5;
-    }
-  }
+  // this.newPos = function() {
+  //   if((myGameArea.key && myGameArea.key ==  38) && (!(this.y < 0))) {
+  //     this.y += -5;
+  //   }
+  //   if((myGameArea.key && myGameArea.key == 40) && (!(this.y > myGameArea.canvas.height - this.height))) {
+  //     this.y += 5;
+  //   }
+  // }
 }; //Game component :: Player PlatForm
-
-
 
 
 function updateGameArea() {
 
   myGameArea.clear();
-  blueBall.newPos();  //replacement for function below for test
-  blueBall.draw();
-  redBall.newPos();
-  redBall.draw();
-  greenBall.newPos();
-  greenBall.draw();
-  playerPltfrm.newPos();
+  ball.newPos();
+  ball.draw();
+  // playerPltfrm.newPos();
+  // console.log('(Pos)speedX:',playerPltfrm.speedX, ', (Pos)speedY: ',playerPltfrm.speedY);
+  if((myGameArea.key && myGameArea.key ==  38) && (!(playerPltfrm.y < 0))) {
+    playerPltfrm.y += -5;
+  }
+  if((myGameArea.key && myGameArea.key == 40) && (!(playerPltfrm.y > myGameArea.canvas.height - playerPltfrm.height))) {
+    playerPltfrm.y += 5;
+  }
   playerPltfrm.draw();
+  // console.log('(Drw)speedX:',playerPltfrm.speedX, ', (Drw)speedY: ',playerPltfrm.speedY);
+
+
+
+  if(ball.hit()){
+      ball.speedX = -ball.speedX;
+  }
+
+  if(ball.x > myGameArea.canvas.width + 10)
+  stopGame();
 }
 
 
 </script>
+<script src="/socket.io/socket.io.js"></script>
 
-<p>We have created a game area!</p>
+<p id="GameText"></p>
+<button id="restartButton" onClick="startGame()" hidden>Restart</button>
 
 </body>
 </html>
