@@ -1,4 +1,6 @@
 /node_modules
-/views/test.html
-/views/test-test.html
-/playground
+#/views/test.html
+#/views/test-test.html
+#/playground
+#/server-test.js
+#/views/game_modul.html

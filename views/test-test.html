@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var greetCount = 0;
+    var socket = io();
+    socket.on('connect', function() {
+      console.log('Connected to server..');
+    });
+
+    socket.on('greet', function(data) {
+      greetCount++;
+      console.log('From Server ||', data, '::', greetCount);
+    });
+  </script>
+
+</body>
+</html>

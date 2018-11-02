@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+  canvas {
+    width: 90vw;
+    align-self: auto;
+    border: 1px solid #d3d3d3;
+    background-color: #f1f1f1;
+  }
+</style>
+</head>
+<canvas id="gameCanvas"></canvas>
+<body>
+
+  <script>
+    var canvas = document.getElementById("gameCanvas");
+    canvas.width = Window.screenX;
+    console.log(Window.screenX);
+    var ctx = canvas.getContext("2d");
+    ctx.moveTo(0, 0);
+    ctx.lineTo(canvas.width, canvas.heigth);
+    ctx.stroke();
+
+  </script>
+
+  <p id="GameText">There's some Game text.</p>
+  <button id="restartButton" onClick="startGame()" hidden>Restart</button>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+  canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #f1f1f1;
+  }
+</style>
+</head>
+<body>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+  var PORT = window.location.href.slice(17,21);
+  var socket = io.connect(`http://localhost:${PORT}`);
+  socket.on('connect',() => {
+    console.log(`Connected to ${window.location.href} socket..`);
+  });
+  socket.on('update', (data) => {
+    updateGameArea();
+  });
+  </script>
+
+  <script class="GameScript">
+
+  var ball;
+  var playerPltfrm;
+
+
+  function startGame() {
+    socket.emit('gameStartEvent', 'Game Started');
+    document.getElementById('GameText').innerHTML = 'Use UP and DOWN keys to control the bar.';
+    document.getElementById('startGameButton').hidden = true;
+    myGameArea.start(1000, 600); //Arguments : Canvas Dimensions
+    ball = new Ball(10, "red", 25, 150, 7, 9);//(radius, color, x, y, speedX, speedY)
+    playerPltfrm = new PlayerPltfrm(15, 100);
+  }
+
+  function stopGame() {
+    ball.speedX = 0;
+    ball.speedY = 0;
+    // console.log('from stopGame() func :)');
+    // clearInterval(myGameArea.interval);
+    ctx = myGameArea.context;
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over", myGameArea.canvas.width/2, myGameArea.canvas.height/2);
+    document.getElementById('GameText').innerHTML = 'Game Over!';
+    document.getElementById('startGameButton').hidden = false;
+    document.getElementById('startGameButton').innerHTML = 'Restart';
+  }
+
+  var myGameArea = {
+    canvas: document.createElement("canvas"),
+
+    start:  function(canvasWidth, canvasHeight) {
+
+      //Properties of Canvas
+      this.canvas.width = canvasWidth;
+      this.canvas.height = canvasHeight;
+      this.context = this.canvas.getContext("2d");
+      document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+      // this.interval = setInterval(updateGameArea, 20);
+
+      //Events of Canvas
+      window.addEventListener('keydown', function (e) {
+        myGameArea.key = e.keyCode;
+      });
+      window.addEventListener('keyup', function (e) {
+        myGameArea.key = false;
+      });
+    },
+
+    clear: function() {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+  }
+
+
+
+
+
+  function Ball(rad, color, x, y, speedX, speedY) {
+
+    //Properties : Ball
+    this.rad = rad;
+    this.x = x;
+    this.y = y;
+    this.speedX = speedX;
+    this.speedY = speedY;
+    this.color = color;
+
+    //Methods : Ball
+    this.draw = function() {
+      var ctx = myGameArea.context;
+      if(this.x < 0){ // Add = " this.x > myGameArea.canvas.width || "  //Things I Do for Debugging.
+      this.speedX = -this.speedX;
+    }
+    if(this.y > myGameArea.canvas.height || this.y < 0){
+      this.speedY = -this.speedY;
+    }
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.rad, 0, 2*Math.PI);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+  }
+
+  this.newPos = function () {
+    this.x += this.speedX;
+    this.y += this.speedY;
+  }
+
+  this.hit = function() {
+
+    //Ball WhereAbouts----
+    var myleft = this.x - this.rad;
+    var myright = this.x + this.rad;
+    var mytop = this.y - this.rad;
+    var mybottom = this.y + this.rad;
+
+    var crash = true;
+
+    var obstacle = {}; //Our obstacle(playerPltfrm) and its WhereAbouts--
+    obstacle.left = playerPltfrm.x;
+    obstacle.right = playerPltfrm.x + playerPltfrm.width;
+    obstacle.top = playerPltfrm.y;
+    obstacle.bottom = playerPltfrm.y + playerPltfrm.height;
+
+    if ((mybottom < obstacle.top) ||
+    (mytop > obstacle.bottom) ||
+    (myright < obstacle.left) ||
+    (myleft > obstacle.right)) {
+      crash = false;
+    }
+    return crash;
+  }
+
+}; //Game Component :: Ball
+
+
+function PlayerPltfrm(width, height){
+
+  //Properties : PlatForm
+  this.width = width;
+  this.height = height;
+
+  this.x = myGameArea.canvas.width - this.width;
+
+  this.y = 0.5*(myGameArea.canvas.height - this.height);
+
+  //Methods : PlatForm
+  this.draw = function() {
+    var ctx = myGameArea.context;
+    ctx.fillStyle = "brown";
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+
+  // this.newPos = function() {
+  //   if((myGameArea.key && myGameArea.key ==  38) && (!(this.y < 0))) {
+  //     this.y += -5;
+  //   }
+  //   if((myGameArea.key && myGameArea.key == 40) && (!(this.y > myGameArea.canvas.height - this.height))) {
+  //     this.y += 5;
+  //   }
+  // }
+}; //Game component :: Player PlatForm
+
+
+function updateGameArea() {
+
+  myGameArea.clear();
+  ball.newPos();
+  ball.draw();
+  // playerPltfrm.newPos();
+  // console.log('(Pos)speedX:',playerPltfrm.speedX, ', (Pos)speedY: ',playerPltfrm.speedY);
+  if((myGameArea.key && myGameArea.key ==  38) && (!(playerPltfrm.y < 0))) {
+    playerPltfrm.y += -5;
+  }
+  if((myGameArea.key && myGameArea.key == 40) && (!(playerPltfrm.y > myGameArea.canvas.height - playerPltfrm.height))) {
+    playerPltfrm.y += 5;
+  }
+  playerPltfrm.draw();
+  // console.log('(Drw)speedX:',playerPltfrm.speedX, ', (Drw)speedY: ',playerPltfrm.speedY);
+
+
+
+  if(ball.hit()){
+    ball.speedX = -ball.speedX;
+  }
+
+  if(ball.x > myGameArea.canvas.width + 10) {
+    socket.emit('stopGameEvent', 'Game Stopped!')
+    stopGame();
+  }
+}
+
+
+</script>
+
+<p id="GameText"></p>
+<button id="startGameButton" onClick="startGame()">Start Game</button>
+
+</body>
+</html>
